@@ -15,9 +15,9 @@ app.use(cors());
 
 //Available Routes
 app.use('/.netlify/functions/server/api/auth/user', require('./routes/auth'));
-app.use('/api/tweet', require('./routes/tweet'));
-app.use('/api/user', require('./routes/users'));
-app.use('/api/retweet', require('./routes/retweet'));
+app.use('/.netlify/functions/server/api/tweet', require('./routes/tweet'));
+app.use('/.netlify/functions/server/api/user', require('./routes/users'));
+app.use('/.netlify/functions/server/api/retweet', require('./routes/retweet'));
 
 
 
