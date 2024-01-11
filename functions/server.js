@@ -3,7 +3,7 @@ const serverless = require('serverless-http');
 const connectToDtabase = require("./db");
 const express = require('express');
 const cors = require('cors');
-// const port = 5000;
+const port = 5000;
 
 connectToDtabase();
 const app = express();
@@ -22,8 +22,8 @@ app.use('/.netlify/functions/server/api/retweet', require('./routes/retweet'));
 
 
 // Connect to the server
-// app.listen(port, () => {
-//     console.log(`Server is running at port ${port}`);
-// });
+app.listen(port, () => {
+    console.log(`Server is running at port ${port}`);
+});
 
-module.exports.handler = serverless(app);
+// module.exports.handler = serverless(app);

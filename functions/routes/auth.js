@@ -7,24 +7,22 @@ const JWT_SECRET = "Iaminatwitter";
 let success = false;
 
 // Multer
-const multer = require('multer');
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, "../frontend/src/images/")
-    },
-    filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now();
-        cb(null, uniqueSuffix + file.originalname);
-    }
-})
-const upload = multer({ storage: storage })
+// const multer = require('multer');
+// const storage = multer.diskStorage({
+//     destination: function (req, file, cb) {
+//         cb(null, "../frontend/src/images/")
+//     },
+//     filename: function (req, file, cb) {
+//         const uniqueSuffix = Date.now();
+//         cb(null, uniqueSuffix + file.originalname);
+//     }
+// })
+// const upload = multer({ storage: storage })
 
 
 // Route-1: Register a user using: POST "/api/auth/signup". No login required
-router.post('/signup', upload.single('image'), async (req, res) => {
+router.post('/signup', async (req, res) => {
     try {
-        console.log(req.file);
-        const imageName = req.file.filename;
         let user = await User.findOne({ email: req.body.email });
         if (user) {
             success = false;
@@ -42,7 +40,8 @@ router.post('/signup', upload.single('image'), async (req, res) => {
             location: req.body.location,
             dob: req.body.dob,
             bio: req.body.bio,
-            image: imageName,
+            image: req.body.imageUrl,
+            public_id: req.body.public_id,
         });
         const data = {
             user: {

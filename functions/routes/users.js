@@ -1,23 +1,11 @@
+require('dotenv').config();
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const Tweets = require('../models/Tweet');
 const fetchuser = require('../middleware/fetchuser');
+const cloudinary = require('cloudinary').v2;
 let success = false;
-
-//Multer
-const multer = require('multer');
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "../frontend/src/images/")
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now();
-    cb(null, uniqueSuffix + file.originalname);
-  }
-})
-const upload = multer({ storage: storage });
-
 
 // Route-1: Get all users: GET,  Login required
 router.get('/get-all-users', async (req, res) => {
@@ -80,27 +68,43 @@ router.put('/following/:followingId', fetchuser, async (req, res) => {
 });
 
 // Route-4: Edit Profile : PUT,   Login required
-router.put('/edit-profile', fetchuser, upload.single('image'), async (req, res) => {
+router.put('/edit-profile', fetchuser, async (req, res) => {
   try {
     const userId = req.user.id;
-    const profileImage = await (User.findOne({ _id: userId })).image;
+    const user = await User.findOne({ _id: userId });
+    const profileImage = user.image;
+    const oldPublicId = user.public_id;
+    const image = req.body.imageUrl;
+    const public_id = req.body.public_id;
     const name = req.body.name;
     const location = req.body.location;
     const dob = req.body.dob;
     const bio = req.body.bio;
 
-    if (req.body.image !== 'null') {
-      const image = req.file.filename;
+    if (image !== null) {
       await User.updateOne(
         { _id: userId },
-        { $set: { name, location, dob, bio, image } }
+        { $set: { name, location, dob, bio, image, public_id } }
       );
       await Tweets.updateMany({ userId }, { name: name, userImage: image });
       await Tweets.updateMany(
         { 'RetweetBy.userId': userId },
         { $set: { 'RetweetBy.$.name': name, 'RetweetBy.$.profileImage': image } }
       );
-      res.status(200).json({ success: true, image: image });
+
+      //Delete image from cloudinary
+      cloudinary.config({
+        cloud_name: process.env.CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET
+      });
+      
+      cloudinary.uploader.destroy(oldPublicId, (error, result) => {
+        if (error) {
+          console.error('Error deleting image:', error);
+        }
+      });
+      res.status(200).json({ success: true });
     } else {
       await User.updateOne(
         { _id: userId },
