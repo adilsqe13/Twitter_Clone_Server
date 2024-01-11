@@ -4,7 +4,7 @@ const router = express.Router();
 const User = require('../models/User');
 const Tweets = require('../models/Tweet');
 const fetchuser = require('../middleware/fetchuser');
-const cloudinary = require('cloudinary').v2;
+const deleteImage = require('../modules/delete-image');
 let success = false;
 
 // Route-1: Get all users: GET,  Login required
@@ -93,17 +93,8 @@ router.put('/edit-profile', fetchuser, async (req, res) => {
       );
 
       //Delete image from cloudinary
-      cloudinary.config({
-        cloud_name: process.env.CLOUD_NAME,
-        api_key: process.env.CLOUDINARY_API_KEY,
-        api_secret: process.env.CLOUDINARY_API_SECRET
-      });
+      await deleteImage(oldPublicId);
       
-      cloudinary.uploader.destroy(oldPublicId, (error, result) => {
-        if (error) {
-          console.error('Error deleting image:', error);
-        }
-      });
       res.status(200).json({ success: true });
     } else {
       await User.updateOne(

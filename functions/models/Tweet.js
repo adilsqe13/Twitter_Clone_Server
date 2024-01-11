@@ -75,6 +75,10 @@ const TweetSchema = new Schema({
         type: String,
         required: false,
     },
+    public_id: {
+        type: String,
+        required: false,
+    },
     date: {
         type: Date,
         default: Date.now

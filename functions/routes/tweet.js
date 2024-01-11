@@ -3,6 +3,8 @@ const router = express.Router();
 const fetchuser = require('../middleware/fetchuser');
 const Tweets = require('../models/Tweet');
 const User = require('../models/User');
+const deleteImage = require('../modules/delete-image');
+
 
 //Multer
 const multer = require('multer');
@@ -19,19 +21,18 @@ const upload = multer({ storage: storage })
 
 
 // Route-1: Post a tweet using: POST "/api/tweet/post-tweet". Login required
-router.post('/post-tweet', fetchuser, upload.single('image'), async (req, res) => {
+router.post('/post-tweet', fetchuser, async (req, res) => {
+  console.log('hi');
   try {
-    const username = req.body.username;
-    const profileImage = req.body.profileImage;
-    const name = (await User.findOne({ _id: req.user.id })).name;
-    if (req.body.image !== 'null') {
-      const imageName = req.file.filename;
+    const user = await User.findOne({ _id: req.user.id });
+    if (req.body.imageUrl !== null) {
+      
       //Create a new tweet
-      await Tweets.create({ userId: req.user.id, content: req.body.content, image: imageName, userImage: profileImage, username: username, name: name });
+      await Tweets.create({ userId: req.user.id, content: req.body.content, image: req.body.imageUrl, public_id:req.body.public_id, userImage: user.image, username: user.username, name: user.name });
       res.status(200).json({ success: true });
     } else {
       //Create a new tweet
-      await Tweets.create({ userId: req.user.id, content: req.body.content, userImage: profileImage, username: username, name: name });
+      await Tweets.create({ userId: req.user.id, content: req.body.content, userImage: user.image, username: user.username, name: user.name });
       res.status(200).json({ success: true });
     }
   } catch (error) {
@@ -127,7 +128,10 @@ router.post('/repost-tweet/:tweetId', fetchuser, async (req, res) => {
 router.delete('/delete-tweet', fetchuser, async (req, res) => {
   try {
     const tweetId = req.body.tweetId;
+    const tweet = await Tweets.findOne({_id: tweetId});
+    const public_id =  tweet.public_id;
     await Tweets.deleteOne({ _id: tweetId });
+    await deleteImage(public_id);
     res.json({ success: true });
   } catch (error) {
     success = false;
