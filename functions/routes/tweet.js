@@ -6,23 +6,8 @@ const User = require('../models/User');
 const deleteImage = require('../modules/delete-image');
 
 
-//Multer
-const multer = require('multer');
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "../frontend/src/images/")
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now();
-    cb(null, uniqueSuffix + file.originalname);
-  }
-})
-const upload = multer({ storage: storage })
-
-
 // Route-1: Post a tweet using: POST "/api/tweet/post-tweet". Login required
 router.post('/post-tweet', fetchuser, async (req, res) => {
-  console.log('hi');
   try {
     const user = await User.findOne({ _id: req.user.id });
     if (req.body.imageUrl !== null) {
@@ -131,7 +116,9 @@ router.delete('/delete-tweet', fetchuser, async (req, res) => {
     const tweet = await Tweets.findOne({_id: tweetId});
     const public_id =  tweet.public_id;
     await Tweets.deleteOne({ _id: tweetId });
-    await deleteImage(public_id);
+    if(public_id){
+      await deleteImage(public_id);
+    }
     res.json({ success: true });
   } catch (error) {
     success = false;
@@ -154,13 +141,13 @@ router.get('/get-tweet-details/:tweetId', fetchuser, async (req, res) => {
 });
 
 // Route-8: Retweet using: POST,   Login required
-router.post('/retweet', fetchuser, upload.single('image'), async (req, res) => {
+router.post('/retweet', fetchuser, async (req, res) => {
   try {
     const tweetId = req.body.tweetId;
     const tweetFilter = { _id: tweetId };
     const user = await User.findOne({ _id: req.user.id });
-    if (req.body.image !== 'null') {
-      const imageName = req.file.filename;
+    if (req.body.image !== null) {
+
       //Push a new Retweet
       await Tweets.updateOne(
         tweetFilter,
@@ -169,7 +156,8 @@ router.post('/retweet', fetchuser, upload.single('image'), async (req, res) => {
             RetweetBy: {
               userId: req.user.id,
               content: req.body.content,
-              image: imageName,
+              image: req.body.imageUrl,
+              public_id: req.body.public_id,
               username: user.username,
               name: user.name,
               profileImage: user.image

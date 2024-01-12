@@ -4,19 +4,7 @@ const fetchuser = require('../middleware/fetchuser');
 const Tweets = require('../models/Tweet');
 const User = require('../models/User');
 const { ObjectId } = require('mongodb');
-
-//Multer
-const multer = require('multer');
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "../frontend/src/images/")
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now();
-    cb(null, uniqueSuffix + file.originalname);
-  }
-})
-const upload = multer({ storage: storage })
+const deleteImage = require('../modules/delete-image');
 
 
 // Route-1: Repost a retweet using: POST,  Login required
@@ -60,6 +48,10 @@ router.delete('/delete-retweet', fetchuser, async (req, res) => {
   try {
     const tweetId = req.body.tweetId;
     const retweetId = req.body.retweetId;
+    const tweet = await Tweets.findOne({_id: tweetId});
+    const retweets = tweet.RetweetBy
+    const retweet = retweets.filter((e)=> { return (e._id == retweetId)});
+    const public_id = retweet[0].public_id;
     await Tweets.updateOne(
       { _id: tweetId },
       {
@@ -70,6 +62,10 @@ router.delete('/delete-retweet', fetchuser, async (req, res) => {
         }
       }
     );
+    console.log(public_id);
+    if(public_id){
+      await deleteImage(public_id);
+    }
     res.json({ success: true });
 
   } catch (error) {
