@@ -146,24 +146,22 @@ router.post('/retweet', fetchuser, async (req, res) => {
     const tweetId = req.body.tweetId;
     const tweetFilter = { _id: tweetId };
     const user = await User.findOne({ _id: req.user.id });
-    if (req.body.image !== undefined) {
 
-      const imageUrl = await req.body.imageUrl;
-      const public_id = await req.body.public_id;
+    if (req.body.imageUrl !== null) {
       console.log('image not null');
       //Push a new Retweet
       await Tweets.updateOne(
-        tweetFilter,
+        { _id: tweetId },
         {
           $push: {
             RetweetBy: {
-              userId: await req.user.id,
-              content: await req.body.content,
-              image:await imageUrl,
-              public_id:await public_id,
-              username:  user.username,
-              name:  user.name,
-              profileImage:  user.image
+              userId: req.user.id,
+              content: req.body.content,
+              image: req.body.imageUrl,
+              public_id: req.body.public_id,
+              username: user.username,
+              name: user.name,
+              profileImage: user.image
             }
           }
         }
