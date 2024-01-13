@@ -9,6 +9,7 @@ const deleteImage = require('../modules/delete-image');
 
 // Route-1: Repost a retweet using: POST,  Login required
 router.post('/retweet-repost', fetchuser, async (req, res) => {
+  console.log('hi');
   try {
     const tweetId = req.body.tweetId;
     const retweetId = req.body.retweetId;
