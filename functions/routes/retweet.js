@@ -62,7 +62,6 @@ router.delete('/delete-retweet', fetchuser, async (req, res) => {
         }
       }
     );
-    console.log(public_id);
     if(public_id){
       await deleteImage(public_id);
     }
